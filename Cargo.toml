@@ -1,0 +1,22 @@
+[package]
+name = "dota2_webapi_bindings"
+version = "0.6.0"
+authors = ["sn99 <siddharthn.099@gmail.com>"]
+edition = "2018"
+travis-ci = { repository = "sn99/brainhug", branch = "master" }
+description = "Rust bindings for official dota2 webapi"
+keywords = ["dota2", "dota", "webapi", "bindings"]
+readme = "README.md"
+homepage = "https://github.com/sn99/dota2_webapi_bindings"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[badges]
+travis-ci = { repository = "sn99/brainhug", branch = "master" }
+
+[dependencies]
+hyper = "0.10"
+serde = "1.0.116"
+serde_json = "1.0.59"
+serde_derive = "1.0.116"
+serde_with = "1.5.1"
