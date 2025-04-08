@@ -282,6 +282,51 @@ pub mod get_live_league_games {
     }
 }
 
+pub mod get_match_history {
+    #[derive(Deserialize, Debug)]
+    pub struct GetMatchHistoryResult {
+        pub result: GetMatchHistory,
+    }
+
+    #[derive(Deserialize, Debug)]
+    pub struct GetMatchHistory {
+        pub status: usize,
+        pub num_results: usize,
+        pub total_results: usize,
+        pub results_remaining: usize,
+        pub matches: Vec<Match>,
+    }
+
+    #[derive(Deserialize, Debug)]
+    pub struct Match {
+        pub match_id: usize,
+        pub match_seq_num: usize,
+    }
+}
+
+pub mod get_match_history_by_sequence_num {
+    #[derive(Deserialize, Debug)]
+    pub struct GetMatchHistoryBySequenceNumResult {
+        pub result: GetMatchHistoryBySequenceNum,
+    }
+    #[derive(Deserialize, Debug)]
+    pub struct GetMatchHistoryBySequenceNum {
+        pub status: usize,
+        pub matches: Vec<Match>,
+    }
+    #[derive(Deserialize, Debug, Clone, Copy)]
+    pub struct Match {
+        pub match_id: usize,
+        pub match_seq_num: usize,
+        pub duration: usize,
+        pub radiant_win: bool,
+        pub tower_status_radiant: usize,
+        pub tower_status_dire: usize,
+        pub barracks_status_radiant: usize,
+        pub barracks_status_dire: usize,
+    }
+}
+
 pub mod get_top_live_game {
     #[derive(Deserialize, Debug)]
     pub struct GetTopLiveGame {
