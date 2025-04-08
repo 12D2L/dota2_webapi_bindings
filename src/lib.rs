@@ -329,7 +329,8 @@ impl GetLeagueListingBuilder {
 
 builder!(
     GetLiveLeagueGamesBuilder,
-    "http://api.steampowered.com/IDOTA2Match_570/GetLiveLeagueGames/v1/?key={}&"
+    //"http://api.steampowered.com/IDOTA2Match_570/GetLiveLeagueGames/v1/?key={}&"
+	"http://localhost:3000/live/?key={}&"
 );
 impl GetLiveLeagueGamesBuilder {
     language!();
