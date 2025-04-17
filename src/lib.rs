@@ -52,14 +52,10 @@
 
 #[macro_use]
 extern crate serde_derive;
-extern crate hyper;
+extern crate reqwest;
 extern crate serde_json;
 
 pub mod dota;
-
-use hyper::status::StatusCode;
-use hyper::Client;
-use std::io::Read;
 
 use crate::dota::{
     get_game_items::*, get_heroes::*, get_league_listing::*, get_live_league_games::*,
@@ -98,8 +94,8 @@ macro_rules! set {
 /// A `get!` macro to get our `get` functions
 macro_rules! get {
     ($func: ident, $return_type: ident, $builder: ident, $result: ident) => {
-        pub fn $func(&mut self) -> Result<$return_type, Error> {
-            let response = self.get(&*self.$builder.url.clone())?;
+        pub async fn $func(&mut self) -> Result<$return_type, Error> {
+            let response = self.get(&*self.$builder.url.clone()).await?;
             let data_result: $result = serde_json::from_str(response.as_str())?;
             let data = data_result.result;
             Ok(data)
@@ -128,15 +124,15 @@ macro_rules! builder {
 /// different type of errors we can receive during either fetching of data or just unpacking JSON
 #[derive(Debug)]
 pub enum Error {
-    Http(hyper::Error),
+    Http(String),
     Json(serde_json::Error),
     Forbidden(&'static str),
     Message(String),
 }
 
-impl From<hyper::Error> for Error {
-    fn from(e: hyper::Error) -> Error {
-        Error::Http(e)
+impl From<reqwest::Error> for Error {
+    fn from(e: reqwest::Error) -> Error {
+        Error::Http(e.to_string())
     }
 }
 
@@ -156,7 +152,6 @@ impl From<serde_json::Error> for Error {
 /// language (Optional) (string) : The language to provide output in.
 #[derive(Debug, Default)]
 pub struct Dota2Api {
-    http_client: Client,
     pub key: String,
     get_heroes_builder: GetHeroesBuilder,
     get_game_items_builder: GetGameItemsBuilder,
@@ -170,7 +165,6 @@ pub struct Dota2Api {
 impl Dota2Api {
     pub fn new(key: String) -> Self {
         Dota2Api {
-            http_client: Client::new(),
             key,
             ..Default::default()
         }
@@ -243,24 +237,19 @@ impl Dota2Api {
         GetTopLiveGameBuilder
     );
     // use `set` before `get`
-    pub fn get_top_live_game(&mut self) -> Result<GetTopLiveGame, Error> {
-        let response = self.get(&*self.get_top_live_game_builder.url.clone())?;
+    pub async fn get_top_live_game(&mut self) -> Result<GetTopLiveGame, Error> {
+        let response = self
+            .get(&*self.get_top_live_game_builder.url.clone())
+            .await?;
         let data_result: GetTopLiveGame = serde_json::from_str(response.as_str())?;
         let data = data_result;
         Ok(data)
     }
 
     /// our get function to actually get the data from the api
-    fn get(&mut self, url: &str) -> Result<String, Error> {
-        let mut response = self.http_client.get(url).send()?;
-        let mut temp = String::new();
-        if response.status == StatusCode::Forbidden {
-            return Err(Error::Forbidden(
-                "Access is denied. Retrying will not help. Please check your API key.",
-            ));
-        }
-        let _ = response.read_to_string(&mut temp);
-        Ok(temp)
+    async fn get(&mut self, url: &str) -> Result<String, Error> {
+        let response = reqwest::get(url).await?.text().await?;
+        Ok(response)
     }
 }
 
@@ -329,8 +318,7 @@ impl GetLeagueListingBuilder {
 
 builder!(
     GetLiveLeagueGamesBuilder,
-    //"http://api.steampowered.com/IDOTA2Match_570/GetLiveLeagueGames/v1/?key={}&"
-	"http://localhost:3000/live/?key={}&"
+    "http://api.steampowered.com/IDOTA2Match_570/GetLiveLeagueGames/v1/?key={}&" // "http://localhost:3000/live/?key={}&"
 );
 impl GetLiveLeagueGamesBuilder {
     language!();
